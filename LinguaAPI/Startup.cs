@@ -58,6 +58,7 @@ namespace LinguaAPI
             services.AddTransient<IPredmetiRepository, PredmetiRepository>();
             services.AddTransient<IUcioniceRepository, UcioniceRepository>();
             services.AddTransient<ITipoviNastaveRepository, TipoviNastaveRepository>();
+            services.AddTransient<IDokumentiRepository, DokumentiRepository>();
             services.AddTransient<IPredavanjaRepository, PredavanjaRepository>();
             services.AddTransient<IPredavanjaSudioniciRepository, PredavanjaSudioniciRepository>();
             services.AddTransient<ICalendarEventsRepository, CalendarEventsRepository>();
@@ -71,6 +72,7 @@ namespace LinguaAPI
             //services.AddTransient<ITipoviNastaveService, TipoviNastaveService>();
             //services.AddTransient<IRolesService, RolesService>();
             services.AddTransient<IUsersService, UsersService>();
+            services.AddTransient<IDokumentiService, DokumentiService>();
             services.AddTransient<IPredavanjaService, PredavanjaService>();
             services.AddTransient<ICalendarEventsService, CalendarEventsService>();
         }

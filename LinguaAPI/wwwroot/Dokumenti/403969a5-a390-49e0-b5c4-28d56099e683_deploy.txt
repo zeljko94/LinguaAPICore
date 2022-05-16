@@ -1,0 +1,7 @@
+username: zekrnj
+pass: zekrnj
+
+server: ss-intop03
+
+
+backend port 8084

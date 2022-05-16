@@ -33,6 +33,9 @@ namespace LinguaAPI.Mapper
 
             CreateMap<CalendarEvent, CalendarEventDTO>();
             CreateMap<CalendarEventDTO, CalendarEvent>();
+
+            //CreateMap<Dokument, DokumentDTO>();
+            //CreateMap<DokumentDTO, Dokument>();
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using LinguaAPI.Repositories.Dapper;
+using System;
 
 namespace LinguaAPI.Models.DTOs
 {
-    public class CalendarEventDTO
+    public class CalendarEventDTO : BaseEntity
     {
         public string Title { get; set; }
         public string Body { get; set; }

@@ -3,11 +3,13 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
 
 namespace LinguaAPI.Repositories.Dapper
 {
@@ -110,7 +112,8 @@ namespace LinguaAPI.Repositories.Dapper
                     List<SqlParameter> parameters = new List<SqlParameter>();
                     foreach (PropertyInfo prop in entity.GetType().GetProperties())
                     {
-                        if (prop.Name != "Id" && prop.Name != "ID" && prop.Name != "id" && prop.GetType().IsClass)
+                        var hasNotMappedAttribute = prop.GetCustomAttributes(true).Any(x => x.GetType() == typeof(NotMappedAttribute));
+                        if (prop.Name != "Id" && prop.Name != "ID" && prop.Name != "id" && prop.GetType().IsClass && !hasNotMappedAttribute)
                         {
                             //if (prop.PropertyType == typeof(DateTime?) && prop.Name == "DatumKreiranja")
                             //{
@@ -186,7 +189,8 @@ namespace LinguaAPI.Repositories.Dapper
                     List<SqlParameter> parameters = new List<SqlParameter>();
                     foreach (PropertyInfo prop in obj.GetType().GetProperties())
                     {
-                        if (prop.Name != "Id" && prop.Name != "ID" && prop.Name != "id" && prop.GetType().IsClass)
+                        var hasNotMappedAttribute = prop.GetCustomAttributes(true).Any(x => x.GetType() == typeof(NotMappedAttribute));
+                        if (prop.Name != "Id" && prop.Name != "ID" && prop.Name != "id" && prop.GetType().IsClass && !hasNotMappedAttribute)
                         {
                             if (prop == obj.GetType().GetProperties().Last())
                             {
@@ -300,10 +304,19 @@ namespace LinguaAPI.Repositories.Dapper
                     var item = Activator.CreateInstance<T>();
                     foreach (var property in typeof(T).GetProperties())
                     {
-                        if (!reader.IsDBNull(reader.GetOrdinal(property.Name)))
+                        var hasNotMappedAttribute = property.GetCustomAttributes(true).Any(x => x.GetType() == typeof(NotMappedAttribute));
+                        if (!hasNotMappedAttribute && !reader.IsDBNull(reader.GetOrdinal(property.Name)))
                         {
                             Type convertTo = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
-                            property.SetValue(item, Convert.ChangeType(reader[property.Name], convertTo), null);
+                            if(property.PropertyType.IsEnum)
+                            {
+                                var whatever = Enum.ToObject(property.PropertyType, reader[property.Name]);
+                                property.SetValue(item, whatever, null);
+                            }
+                            else
+                            {
+                                property.SetValue(item, Convert.ChangeType(reader[property.Name], convertTo), null);
+                            }
                         }
                     }
                     results.Add(item);

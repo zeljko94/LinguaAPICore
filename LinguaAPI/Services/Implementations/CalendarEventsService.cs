@@ -84,9 +84,19 @@ namespace LinguaAPI.Services.Implementations
             }
         }
 
-        public async Task<ApiResponse<bool>> Update(CalendarEventDTO entity)
+        public async Task<ApiResponse<bool>> Update(CalendarEventDTO dto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var entity = _mapper.Map<CalendarEvent>(dto);
+                var updated = await _calendarEventsRepository.Update(entity);
+                return updated ? new OkResponse<bool>("Uspješno ažurirano!", true) : new ErrorResponse<bool>("Greška prilikom ažuriranja!", false);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return new ErrorResponse<bool>("Greška prilikom ažuriranja!", false);
+            }
         }
     }
 }

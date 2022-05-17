@@ -14,6 +14,7 @@
   <ItemGroup>
     <Folder Include="Settings\" />
     <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\Dokumenti\" />
     <Folder Include="wwwroot\ProfileImages\" />
     <Folder Include="wwwroot\Slike\" />
     <Folder Include="wwwroot\UcioniceSlike\" />

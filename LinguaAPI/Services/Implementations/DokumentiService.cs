@@ -58,7 +58,12 @@ namespace LinguaAPI.Services.Implementations
 
         public async Task<ApiResponse<List<Dokument>>> GetAll()
         {
-            throw new NotImplementedException();
+            var dokumenti = await _dokumentiRepository.GetAll();
+            foreach(var dok in dokumenti)
+            {
+                dok.Bytes = await GetFile(dok.Path);
+            }
+            return new OkResponse<List<Dokument>>("Uspješan dohvat!", dokumenti);
         }
 
         public async Task<ApiResponse<Dokument>> GetById(int id)
@@ -66,7 +71,7 @@ namespace LinguaAPI.Services.Implementations
             var fromDb = await _dokumentiRepository.GetById(id);
             if(fromDb != null)
             {
-                fromDb.Bytes = await GetFile(fromDb.Path + "\\" + fromDb.Guid + "_" + fromDb.Filename);
+                fromDb.Bytes = await GetFile(fromDb.Path);
                 return new OkResponse<Dokument>("Uspješan dohvat!", fromDb);
             }
             else
@@ -77,13 +82,17 @@ namespace LinguaAPI.Services.Implementations
 
         public async Task<ApiResponse<int>> Insert(Dokument entity)
         {
-            var inserted = await _dokumentiRepository.Insert(entity);
-            if(inserted > 0)
+            var fileCreated = await CreateFile(entity);
+            if(fileCreated)
             {
-                await CreateFile(entity);
-                return new OkResponse<int>("Uspješno spremljeno!", inserted);
+                var inserted = await _dokumentiRepository.Insert(entity);
+                if(inserted > 0)
+                {
+                    return new OkResponse<int>("Uspješno spremljeno!", inserted);
+                }
+                return new ErrorResponse<int>("Greška prilikom spremanja datoteke!", 0);
             }
-            return new ErrorResponse<int>("Greška prilikom spremanja datoteke!", 0);
+            return new ErrorResponse<int>("Greška prilikom kreiranja datoteke!", 0);
         }
 
         public async Task<ApiResponse<bool>> Update(Dokument entity)
@@ -94,27 +103,29 @@ namespace LinguaAPI.Services.Implementations
 
 
         #region HELPERS
-        private readonly string PROFILE_IMAGES_PATH = "/ProfilneSlike";
-        private readonly string DOKUMENTI_PATH      = "/Dokumenti";
+        private readonly string PROFILE_IMAGES_PATH = "ProfilneSlike";
+        private readonly string DOKUMENTI_PATH      = "Dokumenti";
         private async Task<bool> CreateFile(Dokument dokument)
         {
             try
             {
                 var path = GetDokumentRootPathByType(dokument);
+                dokument.Path = path + "\\" + dokument.Guid + "_" + dokument.Filename;
+                dokument.Extension = Path.GetExtension(dokument.Path);
+                dokument.Guid = Guid.NewGuid().ToString();
 
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                 }
-                dokument.Guid = Guid.NewGuid().ToString();
                 
                 if(dokument.IsDirectory)
                 {
-                    await File.WriteAllBytesAsync(path + "\\" + dokument.Guid + "_" + dokument.Filename, dokument.Bytes);
+                    await File.WriteAllBytesAsync(dokument.Path, dokument.Bytes);
                 }
                 else
                 {
-                    await File.WriteAllBytesAsync(path + "\\" + dokument.Guid + "_" + dokument.Filename, dokument.Bytes);
+                    await File.WriteAllBytesAsync(dokument.Path, dokument.Bytes);
                 }
                 return true;
             }
@@ -132,11 +143,11 @@ namespace LinguaAPI.Services.Implementations
                 var path = GetDokumentRootPathByType(dokument);
                 if(dokument.IsDirectory)
                 {
-                    Directory.Delete(path + "\\" + dokument.Guid + "_" + dokument.Filename);
+                    Directory.Delete(dokument.Path);
                 }
                 else
                 {
-                    File.Delete(path + "\\" + dokument.Guid + "_" + dokument.Filename);
+                    File.Delete(dokument.Path);
                 }
                 return await Task.FromResult(true);
             }
